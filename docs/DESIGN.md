@@ -64,7 +64,8 @@
 `Starfield` · `GlowOrb` · `StyleLayer` · `Postcard` · `PassportRadar` · `StyleMixBar` · `ExplainList` · `SongPlayer` · `BottomNav` · `SkyView` · `DayView` · `NewEntry` · `ui.tsx` (`Chip`, `PrimaryButton`, `Surface`)
 
 ## Что пока заглушка
-- Текст разбирает Claude (`/api/analyze`), если задан `ANTHROPIC_API_KEY`; без ключа — словарь корней. Песни — каталог из 10 треков без настоящего поиска и анализа аудио.
+- Текст разбирает Claude (`/api/analyze`), если задан `ANTHROPIC_API_KEY`; без ключа — правила дневника (`src/lib/text-mood.ts`).
+- Музыка настоящая: поиск по Deezer (`/api/music/*`), анализ 30-секундного фрагмента в браузере (`src/lib/audio-analysis.ts`). Свой аудиофайл загрузить пока нельзя; ремикс использует встроенный каталог из 10 песен.
 - «Архивные» звёзды на карте созвездий сгенерированы вокруг демо-дней (`src/data/archive.ts`).
-- Плеер без звука, экспорт видео показывает подсказку.
+- Экспорт видео показывает подсказку.
 - `StyleLayer` — SVG-эскизы приёмов. В рабочей версии их заменят GLSL-фильтры (см. `docs/PLAN.md`, этап 3).
