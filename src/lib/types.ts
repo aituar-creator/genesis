@@ -58,6 +58,8 @@ export type TextMood = {
   density: number;
   intimacy: number;
   timeOfDay: number;
+  /** Эмоции дня простыми словами (от языковой модели). */
+  emotions?: string[];
   /** Найденные слова — для объяснения. */
   hits?: { positive: string[]; negative: string[]; calm: string[]; lively: string[]; details: string[]; people: string[] };
 };
@@ -82,4 +84,6 @@ export type Day = {
   explain: { icon: ExplainIcon; text: string }[];
   season: Season;
   withFriends: boolean;
+  /** Кто разобрал текст: языковая модель или запасной словарь. У демо-дней не задано. */
+  analyzedBy?: "claude" | "dictionary";
 };

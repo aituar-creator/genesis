@@ -6,12 +6,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { TODAY } from "@/data/demo-days";
 import { SONGS } from "@/data/songs";
+import { requestAnalysis } from "@/lib/analysis";
 import { addDays, addEntry } from "@/lib/entries-store";
 import { extractPalette, loadImage, mergePalettes, thumbnail } from "@/lib/palette";
 import { humanDate } from "@/lib/visual";
 import { PrimaryButton } from "./ui";
 
-const IGNITE_STEPS = ["Читаем, как прошёл день", "Слушаем песню", "Смотрим на свет фотографий", "Собираем паспорт дня"];
+const IGNITE_STEPS = ["Claude читает, как прошёл день", "Слушаем песню", "Смотрим на свет фотографий", "Собираем паспорт дня"];
 const SEND_STEPS = ["Запечатываем день", "Свет отправлен"];
 
 const WHEN = [
@@ -33,7 +34,7 @@ export function NewEntry() {
   const [songId, setSongId] = useState<string | null>(null);
   const [when, setWhen] = useState<(typeof WHEN)[number]["key"]>("now");
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<null | { mode: "ignite" | "send"; target: string; deliverAt?: string }>(null);
+  const [busy, setBusy] = useState<null | { mode: "ignite" | "send"; deliverAt?: string }>(null);
   const [step, setStep] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -43,12 +44,8 @@ export function NewEntry() {
   useEffect(() => {
     if (!busy) return;
     const tick = setInterval(() => setStep((s) => Math.min(s + 1, steps.length - 1)), busy.mode === "send" ? 1200 : 650);
-    const done = setTimeout(() => router.push(busy.target), busy.mode === "send" ? 2600 : 2800);
-    return () => {
-      clearInterval(tick);
-      clearTimeout(done);
-    };
-  }, [busy, router, steps.length]);
+    return () => clearInterval(tick);
+  }, [busy, steps.length]);
 
   const results = query.trim()
     ? SONGS.filter((s) => `${s.title} ${s.artist}`.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 5)
@@ -70,7 +67,8 @@ export function NewEntry() {
     setPhotos((ps) => [...ps, ...added]);
   };
 
-  const submit = () => {
+  const submit = async () => {
+    if (busy) return;
     if (!text.trim()) {
       setError("Напиши хотя бы пару слов о дне");
       return;
@@ -82,18 +80,26 @@ export function NewEntry() {
     const id = `u-${Date.now().toString(36)}`;
     const days = WHEN.find((w) => w.key === when)!.days;
     const deliverAt = days ? addDays(TODAY, days) : undefined;
+    const time = new Date().toTimeString().slice(0, 5);
+    const started = Date.now();
+    setStep(0);
+    setBusy({ mode: deliverAt ? "send" : "ignite", deliverAt });
+
+    // Пока идёт анимация, Claude читает текст. Без ответа — запись разберётся словарём.
+    const analysis = await requestAnalysis(text.trim(), TODAY, time);
     addEntry({
       id,
       date: TODAY,
-      time: new Date().toTimeString().slice(0, 5),
+      time,
       text: text.trim(),
       songId: song.id,
       palette: mergePalettes(photos.map((p) => p.palette), FALLBACK),
       photos: photos.map((p) => p.src),
       deliverAt,
+      analysis: analysis ?? undefined,
     });
-    setStep(0);
-    setBusy({ mode: deliverAt ? "send" : "ignite", target: `/entry/${id}`, deliverAt });
+    const minShow = deliverAt ? 2600 : 2800;
+    setTimeout(() => router.push(`/entry/${id}`), Math.max(0, minShow - (Date.now() - started)));
   };
 
   const fillDemo = () => {

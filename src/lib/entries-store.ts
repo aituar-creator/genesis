@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { findSong, SONGS } from "@/data/songs";
+import type { TextAnalysis } from "./analysis";
 import { buildDay } from "./build-day";
 import type { Day } from "./types";
 
@@ -19,6 +20,8 @@ export type StoredEntry = {
   photos: string[];
   /** «Свет доходит позже»: дата, когда запись откроется. */
   deliverAt?: string;
+  /** Разбор текста (Claude или словарь) — сохраняем, чтобы день не менялся от вызова к вызову. */
+  analysis?: TextAnalysis;
 };
 
 type State = { entries: StoredEntry[]; arrived: string[] };
@@ -86,6 +89,10 @@ export function entryToDay(e: StoredEntry): Day {
     song: findSong(e.songId) ?? SONGS[0],
     palette: e.palette,
     photos: e.photos,
+    mood: e.analysis?.mood,
+    title: e.analysis?.title,
+    caption: e.analysis?.caption,
+    analyzedBy: e.analysis?.source ?? "dictionary",
   });
 }
 

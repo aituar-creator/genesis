@@ -13,6 +13,10 @@ export type DayInput = {
   photos: string[];
   /** Можно передать готовое настроение текста (демо), иначе считаем словарём. */
   mood?: TextMood;
+  /** Готовые название и подпись (от Claude); иначе собираем сами. */
+  title?: string;
+  caption?: string;
+  analyzedBy?: Day["analyzedBy"];
 };
 
 function hash(s: string) {
@@ -35,8 +39,8 @@ export function buildDay(input: DayInput): Day {
     date: input.date,
     time: input.time,
     text: input.text,
-    title: titleFor(input.date, mood),
-    caption: captionFor(input.text, mood),
+    title: input.title ?? titleFor(input.date, mood),
+    caption: input.caption ?? captionFor(input.text, mood),
     palette: pal,
     photos,
     song: input.song,
@@ -46,5 +50,6 @@ export function buildDay(input: DayInput): Day {
     explain: explainDay(passport, styles, input.song, mood, pal),
     season: seasonOf(input.date),
     withFriends: (mood.hits?.people.length ?? 0) > 0,
+    analyzedBy: input.analyzedBy,
   };
 }

@@ -107,6 +107,9 @@ export function explainDay(ps: Passport, styles: Partial<Record<StyleKey, number
       tp < 0.35 ? "сменяются медленно" : tp > 0.65 ? "бьются в резком ритме" : "идут спокойным шагом"
     }${song.mode === "minor" ? ", насыщенность снижена" : ""}`,
   });
+  if (mood.emotions?.length) {
+    lines.push({ icon: "text", text: `В тексте слышно: ${mood.emotions.join(", ")}` });
+  }
   if (ps.conflict) {
     lines.push({ icon: "text", text: "Грустный текст и светлая песня — «светлая грусть»: тёплая палитра, медленный ритм и много пустоты" });
   } else if (mood.hits && (mood.hits.positive.length || mood.hits.negative.length)) {

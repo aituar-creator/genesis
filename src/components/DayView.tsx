@@ -180,7 +180,12 @@ export function DayView({ day, onRemix, backHref = "/" }: { day: Day; onRemix?: 
               </div>
             </div>
 
-            <p className="mt-6 text-[11px] leading-relaxed text-star-700">
+            {day.analyzedBy && (
+              <p className="mt-6 font-mono text-[10px] text-star-500">
+                {day.analyzedBy === "claude" ? "текст разобран Claude" : "текст разобран словарём (Claude не подключён)"}
+              </p>
+            )}
+            <p className={`${day.analyzedBy ? "mt-2" : "mt-6"} text-[11px] leading-relaxed text-star-700`}>
               Это настроение записи, а не диагноз. Песня не хранится — только ссылка и официальный фрагмент.
             </p>
           </section>
