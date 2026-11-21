@@ -182,7 +182,7 @@ export function DayView({ day, onRemix, backHref = "/" }: { day: Day; onRemix?: 
 
             {day.analyzedBy && (
               <p className="mt-6 font-mono text-[10px] text-star-500">
-                {day.analyzedBy === "claude" ? "текст разобран Claude" : "текст разобран словарём (Claude не подключён)"}
+                {day.analyzedBy === "claude" ? "текст разобран Claude" : "текст разобран правилами дневника"}
               </p>
             )}
             <p className={`${day.analyzedBy ? "mt-2" : "mt-6"} text-[11px] leading-relaxed text-star-700`}>
