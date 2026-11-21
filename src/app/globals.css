@@ -1,0 +1,117 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --color-night-950: var(--night-950);
+  --color-night-900: var(--night-900);
+  --color-night-800: var(--night-800);
+  --color-night-700: var(--night-700);
+  --color-night-600: var(--night-600);
+  --color-night-500: var(--night-500);
+  --color-star-100: var(--star-100);
+  --color-star-300: var(--star-300);
+  --color-star-500: var(--star-500);
+  --color-star-700: var(--star-700);
+  --color-glow-300: var(--glow-300);
+  --color-glow-400: var(--glow-400);
+  --color-glow-500: var(--glow-500);
+  --color-glow-ink: var(--glow-ink);
+  --color-aurora: var(--aurora);
+  --color-ember: var(--ember);
+
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-display: var(--font-unbounded), var(--font-manrope), sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-hand: var(--font-caveat), cursive;
+
+  --radius-card: var(--radius-card);
+  --radius-field: var(--radius-field);
+}
+
+html {
+  background: var(--night-950);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--night-950);
+  color: var(--star-100);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--glow-500);
+  color: var(--glow-ink);
+}
+
+/* Мерцание звёзд фона */
+@keyframes twinkle {
+  0%, 100% { opacity: var(--o, 0.6); }
+  50% { opacity: calc(var(--o, 0.6) * 0.35); }
+}
+
+/* Пульс ореола под BPM: --beat задаёт длительность, --amp — амплитуду (энергия дня) */
+@keyframes halo-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(calc(1 + var(--amp, 0.04))); }
+}
+
+/* «Зажигание» дня */
+@keyframes ignite-ring {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+}
+
+@keyframes ignite-core {
+  0% { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
+  60% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+}
+
+@keyframes rise {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Свет в пути: точка бежит по траектории */
+@keyframes travel {
+  from { left: 0%; }
+  to { left: 100%; }
+}
+
+@keyframes float-up {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -260%) scale(0.15); opacity: 0; }
+}
+
+@keyframes eq {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+.animate-rise { animation: rise 0.5s var(--ease-soft) both; }
+.animate-sheet { animation: sheet-up 0.45s var(--ease-soft) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
