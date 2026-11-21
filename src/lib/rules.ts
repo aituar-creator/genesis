@@ -103,9 +103,9 @@ export function explainDay(ps: Passport, styles: Partial<Record<StyleKey, number
   const lines: Day["explain"] = [];
   lines.push({
     icon: "music",
-    text: `${song.bpm} ударов в минуту, ${song.mode === "major" ? "мажор" : "минор"} — кадры ${
+    text: `${song.measured ? "Послушали фрагмент песни: " : ""}${song.bpm} ударов в минуту, ${song.key ?? (song.mode === "major" ? "мажор" : "минор")} — кадры ${
       tp < 0.35 ? "сменяются медленно" : tp > 0.65 ? "бьются в резком ритме" : "идут спокойным шагом"
-    }${song.mode === "minor" ? ", насыщенность снижена" : ""}`,
+    }${song.mode === "minor" ? ", насыщенность снижена" : ""}${song.measured === false ? " (оценено по жанру и году)" : ""}`,
   });
   if (mood.emotions?.length) {
     lines.push({ icon: "text", text: `В тексте слышно: ${mood.emotions.join(", ")}` });

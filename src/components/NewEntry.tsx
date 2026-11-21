@@ -1,18 +1,22 @@
 "use client";
 
-import { IconCheck, IconMusic, IconPhotoPlus, IconSearch, IconSend, IconSparkles, IconX } from "@tabler/icons-react";
+import { IconPhotoPlus, IconSend, IconSparkles, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { TODAY } from "@/data/demo-days";
-import { SONGS } from "@/data/songs";
+import { findSong } from "@/data/songs";
 import { requestAnalysis } from "@/lib/analysis";
 import { addDays, addEntry } from "@/lib/entries-store";
+import { findAndMeasure } from "@/lib/measure-song";
+import type { MusicTrack } from "@/lib/music";
 import { extractPalette, loadImage, mergePalettes, thumbnail } from "@/lib/palette";
+import type { Song } from "@/lib/types";
 import { humanDate } from "@/lib/visual";
+import { SongPicker } from "./SongPicker";
 import { PrimaryButton } from "./ui";
 
-const IGNITE_STEPS = ["Claude читает, как прошёл день", "Слушаем песню", "Смотрим на свет фотографий", "Собираем паспорт дня"];
+const IGNITE_STEPS = ["Читаем, как прошёл день", "Песня задаёт ритм", "Смотрим на свет фотографий", "Собираем паспорт дня"];
 const SEND_STEPS = ["Запечатываем день", "Свет отправлен"];
 
 const WHEN = [
@@ -30,15 +34,14 @@ export function NewEntry() {
   const router = useRouter();
   const [text, setText] = useState("");
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [query, setQuery] = useState("");
-  const [songId, setSongId] = useState<string | null>(null);
+  const [song, setSong] = useState<Song | null>(null);
+  const [measuring, setMeasuring] = useState<MusicTrack | null>(null);
   const [when, setWhen] = useState<(typeof WHEN)[number]["key"]>("now");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<null | { mode: "ignite" | "send"; deliverAt?: string }>(null);
   const [step, setStep] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const song = SONGS.find((s) => s.id === songId);
   const steps = busy?.mode === "send" ? SEND_STEPS : IGNITE_STEPS;
 
   useEffect(() => {
@@ -46,10 +49,6 @@ export function NewEntry() {
     const tick = setInterval(() => setStep((s) => Math.min(s + 1, steps.length - 1)), busy.mode === "send" ? 1200 : 650);
     return () => clearInterval(tick);
   }, [busy, steps.length]);
-
-  const results = query.trim()
-    ? SONGS.filter((s) => `${s.title} ${s.artist}`.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 5)
-    : SONGS.slice(0, 4);
 
   const onFiles = async (files: File[]) => {
     const added: Photo[] = [];
@@ -73,6 +72,10 @@ export function NewEntry() {
       setError("Напиши хотя бы пару слов о дне");
       return;
     }
+    if (measuring) {
+      setError("Секунду — ещё слушаем песню");
+      return;
+    }
     if (!song) {
       setError("Выбери песню — она меняет форму дня");
       return;
@@ -92,7 +95,8 @@ export function NewEntry() {
       date: TODAY,
       time,
       text: text.trim(),
-      songId: song.id,
+      songId: song.ref ?? song.title,
+      song,
       palette: mergePalettes(photos.map((p) => p.palette), FALLBACK),
       photos: photos.map((p) => p.src),
       deliverAt,
@@ -102,10 +106,14 @@ export function NewEntry() {
     setTimeout(() => router.push(`/entry/${id}`), Math.max(0, minShow - (Date.now() - started)));
   };
 
-  const fillDemo = () => {
+  const fillDemo = async () => {
     setText("Утром выпал первый снег. Сидела у окна с какао и смотрела, как всё становится тихим. Немного грустно, что осень закончилась.");
-    setSongId("let-it-snow");
     setError(null);
+    if (song || measuring) return;
+    setMeasuring({ ref: "demo", title: "Let It Snow", artist: "Frank Sinatra" });
+    const measured = await findAndMeasure("Frank Sinatra Let It Snow");
+    setSong(measured ?? findSong("let-it-snow") ?? null);
+    setMeasuring(null);
   };
 
   return (
@@ -194,55 +202,16 @@ export function NewEntry() {
 
       <section aria-label="Песня дня">
         <p className="mb-2 font-mono text-[11px] tracking-[0.08em] text-star-500">ПЕСНЯ ДНЯ</p>
-        {song ? (
-          <div className="flex items-center gap-3 rounded-[var(--radius-field)] border border-night-600 px-3 py-2.5">
-            <IconMusic size={18} className="text-glow-400" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] text-star-100">{song.title}</p>
-              <p className="truncate font-mono text-[11px] text-star-500">
-                {song.artist} · {song.bpm} bpm · {song.mode === "major" ? "мажор" : "минор"}
-              </p>
-            </div>
-            <IconCheck size={18} className="text-aurora" aria-label="Фрагмент найден" />
-            <button type="button" aria-label="Сменить песню" onClick={() => setSongId(null)} className="text-star-700 hover:text-star-300">
-              <IconX size={16} />
-            </button>
-          </div>
-        ) : (
-          <div>
-            <div className="relative">
-              <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-star-700" aria-hidden />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Название или исполнитель"
-                aria-label="Найти песню"
-                className="h-11 w-full rounded-[var(--radius-field)] bg-night-800 pl-9 pr-3 text-[14px] text-star-100 outline-none placeholder:text-star-700 focus:ring-1 focus:ring-night-500"
-              />
-            </div>
-            <ul className="mt-1.5 overflow-hidden rounded-[var(--radius-field)] border border-night-600 bg-night-800">
-              {results.map((s) => (
-                <li key={s.id}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSongId(s.id);
-                      setQuery("");
-                      setError(null);
-                    }}
-                    className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-[13px] text-star-300 hover:bg-night-700"
-                  >
-                    <span className="truncate">
-                      {s.title} <span className="text-star-700">— {s.artist}</span>
-                    </span>
-                    <span className="shrink-0 font-mono text-[11px] text-star-700">{s.bpm}</span>
-                  </button>
-                </li>
-              ))}
-              {!results.length && <li className="px-3 py-2.5 text-[13px] text-star-700">Ничего не нашли — в прототипе 10 песен</li>}
-            </ul>
-          </div>
-        )}
+        <SongPicker
+          value={song}
+          onChange={(s) => {
+            setSong(s);
+            setError(null);
+          }}
+          measuring={measuring}
+          setMeasuring={setMeasuring}
+        />
+        <p className="mt-1.5 text-[11px] text-star-700">Песня не хранится — в записи остаётся ссылка, а звучит официальный фрагмент.</p>
       </section>
 
       <section aria-label="Когда зажечь">

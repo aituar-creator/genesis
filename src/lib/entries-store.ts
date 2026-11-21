@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { findSong, SONGS } from "@/data/songs";
 import type { TextAnalysis } from "./analysis";
 import { buildDay } from "./build-day";
-import type { Day } from "./types";
+import type { Day, Song } from "./types";
 
 /**
  * Записи пользователя в прототипе живут только в этом браузере (localStorage) —
@@ -16,6 +16,8 @@ export type StoredEntry = {
   time: string;
   text: string;
   songId: string;
+  /** Песня с измеренными параметрами (номер трека, без самого звука). */
+  song?: Song;
   palette: [string, string, string, string];
   photos: string[];
   /** «Свет доходит позже»: дата, когда запись откроется. */
@@ -86,7 +88,7 @@ export function entryToDay(e: StoredEntry): Day {
     date: e.date,
     time: e.time,
     text: e.text,
-    song: findSong(e.songId) ?? SONGS[0],
+    song: e.song ?? findSong(e.songId) ?? SONGS[0],
     palette: e.palette,
     photos: e.photos,
     mood: e.analysis?.mood,
