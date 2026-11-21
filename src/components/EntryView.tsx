@@ -131,7 +131,7 @@ function Arrival({ day, travelled }: { day: Day; travelled: number }) {
         />
       ))}
       <div className="animate-rise w-[78%]" style={{ animationDelay: "0.6s" }}>
-        <Postcard day={day} compact />
+        <Postcard day={day} compact live />
       </div>
       <div className="animate-rise mt-6 text-center" style={{ animationDelay: "1s" }}>
         <p className="font-display text-[18px] text-star-100">Свет долетел</p>

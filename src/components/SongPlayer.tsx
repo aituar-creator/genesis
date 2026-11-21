@@ -3,6 +3,7 @@
 import { IconLoader2, IconPlayerPauseFilled, IconPlayerPlayFilled } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { resolvePreview } from "@/lib/music";
+import { setPlayingAudio } from "@/lib/music-clock";
 import type { Song } from "@/lib/types";
 
 type State = "idle" | "loading" | "playing" | "paused" | "unavailable";
@@ -23,6 +24,7 @@ export function SongPlayer({ song }: { song: Song }) {
     () => () => {
       audio.current?.pause();
       audio.current = null;
+      setPlayingAudio(null);
     },
     [],
   );
@@ -48,11 +50,14 @@ export function SongPlayer({ song }: { song: Song }) {
     const a = new Audio(url);
     a.ontimeupdate = () => setProgress(a.duration ? a.currentTime / a.duration : 0);
     a.onended = () => {
+      setPlayingAudio(null);
       setState("idle");
       setProgress(0);
       audio.current = null;
     };
     audio.current = a;
+    // Открытка будет пульсировать в фазе с настоящей песней
+    setPlayingAudio(a, song.bpm);
     try {
       await a.play();
       setState("playing");

@@ -1,6 +1,7 @@
 import type { Day } from "@/lib/types";
 import { rng, stampDate, visualParams } from "@/lib/visual";
 import { GlowOrb } from "./GlowOrb";
+import { LiveCanvas } from "./LiveCanvas";
 import { StyleLayer } from "./StyleLayer";
 
 const GRAIN =
@@ -9,8 +10,9 @@ const GRAIN =
 /**
  * Живая открытка 4:5. Постоянные элементы (по концепции): рамка-паспарту, дата-штамп
  * слева сверху, рукописная подпись, название внизу, зерно. Остальное — из паспорта.
+ * live — живой фон на шейдере (экран дня, ремикс); в лентах — лёгкая статичная версия.
  */
-export function Postcard({ day, compact = false }: { day: Day; compact?: boolean }) {
+export function Postcard({ day, compact = false, live = false }: { day: Day; compact?: boolean; live?: boolean }) {
   const v = visualParams(day);
   const r = rng(day.passport.seed + 1);
   const sats = day.photos.slice(1, 1 + v.satellites);
@@ -25,7 +27,7 @@ export function Postcard({ day, compact = false }: { day: Day; compact?: boolean
       className="relative aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-card)] bg-night-800"
       aria-label={`Открытка дня «${day.title}»`}
     >
-      <StyleLayer day={day} />
+      {live ? <LiveCanvas day={day} /> : <StyleLayer day={day} />}
 
       {Array.from({ length: 14 }, (_, i) => (
         <span
@@ -65,16 +67,21 @@ export function Postcard({ day, compact = false }: { day: Day; compact?: boolean
         </div>
       ))}
 
-      <div
+      {/* Виньетку и зерно живой версии рисует шейдер */}
+      {!live && (
+        <>
+          <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{ background: `radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(8,10,26,${v.vignette}) 100%)` }}
       />
-      <div
+          <div
         aria-hidden
         className="pointer-events-none absolute inset-0 mix-blend-overlay"
         style={{ backgroundImage: GRAIN, opacity: v.grain }}
       />
+        </>
+      )}
       <div aria-hidden className="pointer-events-none absolute inset-2 rounded-[12px] border border-star-100/15" />
 
       <div className="absolute left-4 top-4 font-mono text-[11px] tracking-[0.08em] text-glow-300/90">

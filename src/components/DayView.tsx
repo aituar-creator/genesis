@@ -1,11 +1,12 @@
 "use client";
 
-import { IconArrowLeft, IconBulb, IconPlayerStop, IconShare2, IconVolume, IconWand, IconX } from "@tabler/icons-react";
+import { IconArrowLeft, IconBulb, IconMovie, IconPlayerStop, IconVolume, IconWand, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Day } from "@/lib/types";
 import { CONFLICT_LABEL, humanDate } from "@/lib/visual";
 import { ExplainList } from "./ExplainList";
+import { ExportVideo } from "./ExportVideo";
 import { PassportRadar } from "./PassportRadar";
 import { Postcard } from "./Postcard";
 import { SongPlayer } from "./SongPlayer";
@@ -27,6 +28,7 @@ export function DayView({ day, onRemix, backHref = "/" }: { day: Day; onRemix?: 
   const [sheet, setSheet] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [speaking, setSpeaking] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
 
@@ -83,15 +85,15 @@ export function DayView({ day, onRemix, backHref = "/" }: { day: Day; onRemix?: 
         <button
           type="button"
           aria-label="Сохранить как видео"
-          onClick={() => setToast("Экспорт видео появится в следующей версии")}
+          onClick={() => setExporting(true)}
           className="-mr-2 rounded-full p-2 text-star-500 hover:text-star-100"
         >
-          <IconShare2 size={20} />
+          <IconMovie size={20} />
         </button>
       </header>
 
       <div className="animate-rise">
-        <Postcard day={day} />
+        <Postcard day={day} live />
       </div>
 
       <SongPlayer song={day.song} />
@@ -191,6 +193,7 @@ export function DayView({ day, onRemix, backHref = "/" }: { day: Day; onRemix?: 
           </section>
         </div>
       )}
+      {exporting && <ExportVideo day={day} onClose={() => setExporting(false)} />}
     </main>
   );
 }

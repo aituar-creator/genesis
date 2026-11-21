@@ -77,8 +77,8 @@ export function RemixView({ day, backHref, onBack }: { day: Day; backHref?: stri
         </button>
       </header>
 
-      <div key={`${songTitle}-${light}-${Math.round(v * 10)}`} className="animate-rise">
-        <Postcard day={remixed} />
+      <div className="animate-rise">
+        <Postcard day={remixed} live />
       </div>
 
       <section className="rounded-[var(--radius-field)] bg-night-800 p-4" aria-live="polite">
